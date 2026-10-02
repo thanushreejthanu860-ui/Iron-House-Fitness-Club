@@ -2,7 +2,7 @@
   "name": "gym-membership-system",
   "version": "1.0.0",
   "private": true,
-  "description": "Gym membership management with Express and Oracle Database",
+  "description": "Iron House Fitness Club membership application using Express and Oracle Database",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

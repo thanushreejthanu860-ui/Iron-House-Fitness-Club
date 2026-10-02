@@ -1,55 +1,9 @@
-const planBenefitsByName = {
-    monthly: ["Full gym access", "Standard equipment access", "Basic fitness assessment", "Locker facility"],
-    quarterly: ["Full gym access", "All equipment access", "Fitness assessment", "Basic trainer guidance", "Locker facility"],
-    yearly: ["Full gym access", "Premium equipment access", "Regular fitness assessment", "Trainer guidance", "Locker facility", "Priority support"]
-};
-
-const navigationToggle = document.querySelector(".nav-toggle");
-const primaryNavigation = document.getElementById("primary-navigation");
-
-if (navigationToggle && primaryNavigation) {
-    function setNavigationOpen(isOpen) {
-        navigationToggle.setAttribute("aria-expanded", String(isOpen));
-        navigationToggle.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
-        primaryNavigation.classList.toggle("is-open", isOpen);
-    }
-
-    navigationToggle.addEventListener("click", function () {
-        setNavigationOpen(navigationToggle.getAttribute("aria-expanded") !== "true");
-    });
-
-    primaryNavigation.addEventListener("click", function (event) {
-        if (event.target.closest("a")) setNavigationOpen(false);
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!event.target.closest("header") && navigationToggle.getAttribute("aria-expanded") === "true") {
-            setNavigationOpen(false);
-        }
-    });
-
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && navigationToggle.getAttribute("aria-expanded") === "true") {
-            setNavigationOpen(false);
-            navigationToggle.focus();
-        }
-    });
-
-    window.addEventListener("resize", function () {
-        if (window.innerWidth > 1024) setNavigationOpen(false);
-    });
-}
-
 async function apiRequest(url, options = {}) {
     let response;
-
     try {
         response = await fetch(url, {
             ...options,
-            headers: {
-                ...(options.body ? { "Content-Type": "application/json" } : {}),
-                ...options.headers
-            }
+            headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...options.headers }
         });
     } catch (error) {
         const networkError = new Error("Database connection failed.");
@@ -57,47 +11,51 @@ async function apiRequest(url, options = {}) {
         throw networkError;
     }
 
-    let result;
+    let payload;
     try {
-        result = await response.json();
+        payload = await response.json();
     } catch (error) {
-        result = {};
+        payload = {};
     }
-
     if (!response.ok) {
-        const requestError = new Error(result.message || "Request failed.");
+        const requestError = new Error(payload.message || "Request failed.");
         requestError.status = response.status;
         throw requestError;
     }
-
-    return result;
+    return payload;
 }
 
-function getPlanName(plan) {
+function planIdOf(plan) {
+    return Number(plan.planId ?? plan.plan_id);
+}
+
+function planNameOf(plan) {
     return plan.planName || plan.plan_name || "Membership plan";
 }
 
-function getPlanId(plan) {
-    return Number(plan.planId || plan.plan_id);
+function planDurationOf(plan) {
+    return Number(plan.durationMonths ?? plan.duration_months ?? 0);
 }
 
-function getPlanDuration(plan) {
-    return Number(plan.durationMonths || plan.duration_months || 0);
-}
-
-function getPlanPrice(plan) {
+function planPriceOf(plan) {
     return Number(plan.price || 0);
 }
 
-function getPlanBenefits(plan) {
-    const planKey = getPlanName(plan).toLowerCase();
-    return planBenefitsByName[planKey] || (plan.description ? [plan.description] : ["Full gym access"]);
+function durationLabel(months) {
+    return `${months} ${months === 1 ? "Month" : "Months"}`;
 }
 
-function setBusy(button, busy, label) {
-    if (!button) {
-        return;
-    }
+function benefitsForPlan(plan) {
+    const benefits = {
+        monthly: ["Full gym access", "Standard equipment access", "Basic fitness assessment", "Locker facility"],
+        quarterly: ["Full gym access", "All equipment access", "Fitness assessment", "Basic trainer guidance", "Locker facility"],
+        yearly: ["Full gym access", "Premium equipment access", "Regular fitness assessment", "Trainer guidance", "Locker facility", "Priority support"]
+    };
+    return benefits[planNameOf(plan).toLowerCase()] || (plan.description ? [plan.description] : ["Full gym access"]);
+}
+
+function setButtonBusy(button, busy, label) {
+    if (!button) return;
     if (busy) {
         button.dataset.originalText = button.textContent;
         button.disabled = true;
@@ -112,12 +70,11 @@ function setBusy(button, busy, label) {
 }
 
 const memberForm = document.getElementById("memberForm");
-
 if (memberForm) {
     const planSelect = document.getElementById("member-plan");
     const memberError = document.getElementById("member-error");
     const submitButton = memberForm.querySelector('[type="submit"]');
-    const planPreview = {
+    const preview = {
         name: document.getElementById("selected-plan-name"),
         price: document.getElementById("selected-plan-price"),
         duration: document.getElementById("selected-plan-duration"),
@@ -125,57 +82,54 @@ if (memberForm) {
     };
     let plans = [];
 
-    function updateMemberPlanPreview() {
-        const plan = plans.find(item => String(getPlanId(item)) === planSelect.value);
+    function updatePlanPreview() {
+        const plan = plans.find(item => String(planIdOf(item)) === planSelect.value);
         if (!plan) {
-            planPreview.name.textContent = "Choose a plan";
-            planPreview.price.textContent = "₹ --";
-            planPreview.duration.textContent = "Select a plan to see its duration.";
+            preview.name.textContent = "Choose a plan";
+            preview.price.textContent = "₹ --";
+            preview.duration.textContent = "Select a plan to see its duration.";
             return;
         }
-
-        planPreview.name.textContent = getPlanName(plan);
-        planPreview.price.textContent = `₹${getPlanPrice(plan).toLocaleString("en-IN")}`;
-        planPreview.duration.textContent = `${getPlanDuration(plan)} ${getPlanDuration(plan) === 1 ? "Month" : "Months"}`;
-        planPreview.benefits.replaceChildren();
-        getPlanBenefits(plan).slice(0, 4).forEach(function (benefit) {
+        preview.name.textContent = planNameOf(plan);
+        preview.price.textContent = `₹${planPriceOf(plan).toLocaleString("en-IN")}`;
+        preview.duration.textContent = durationLabel(planDurationOf(plan));
+        preview.benefits.replaceChildren();
+        benefitsForPlan(plan).slice(0, 4).forEach(text => {
             const item = document.createElement("li");
-            item.textContent = benefit;
-            planPreview.benefits.appendChild(item);
+            item.textContent = text;
+            preview.benefits.appendChild(item);
         });
     }
 
-    async function loadMemberPlans() {
+    async function loadPlansForRegistration() {
         try {
             plans = await apiRequest("/api/plans");
             planSelect.replaceChildren(new Option("Choose your plan", ""));
-            plans.forEach(function (plan) {
-                const duration = getPlanDuration(plan);
-                const option = new Option(
-                    `${getPlanName(plan)} - ₹${getPlanPrice(plan).toLocaleString("en-IN")} - ${duration} ${duration === 1 ? "Month" : "Months"}`,
-                    String(getPlanId(plan))
-                );
-                planSelect.appendChild(option);
+            plans.forEach(plan => {
+                const months = planDurationOf(plan);
+                planSelect.appendChild(new Option(
+                    `${planNameOf(plan)} - ₹${planPriceOf(plan).toLocaleString("en-IN")} - ${durationLabel(months)}`,
+                    String(planIdOf(plan))
+                ));
             });
         } catch (error) {
             memberError.textContent = "Database connection failed.";
         }
     }
 
-    planSelect.addEventListener("change", updateMemberPlanPreview);
-    loadMemberPlans();
+    planSelect.addEventListener("change", updatePlanPreview);
+    loadPlansForRegistration();
 
-    memberForm.addEventListener("submit", async function (event) {
+    memberForm.addEventListener("submit", async event => {
         event.preventDefault();
         memberError.textContent = "";
-
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
         const emailInput = document.getElementById("email");
         const email = emailInput.value.trim();
         const age = Number(document.getElementById("age").value);
         const gender = document.getElementById("gender").value;
-        const plan = plans.find(item => String(getPlanId(item)) === planSelect.value);
+        const plan = plans.find(item => String(planIdOf(item)) === planSelect.value);
 
         if (!name || !phone || !email || !gender || !plan) {
             memberError.textContent = "Please complete all fields and select a membership plan.";
@@ -194,175 +148,134 @@ if (memberForm) {
             return;
         }
 
-        setBusy(submitButton, true, "Registering...");
+        setButtonBusy(submitButton, true, "Registering...");
         try {
             const result = await apiRequest("/api/members", {
                 method: "POST",
-                body: JSON.stringify({
-                    name,
-                    phone,
-                    email,
-                    age,
-                    gender,
-                    plan_id: getPlanId(plan)
-                })
+                body: JSON.stringify({ name, phone, email, age, gender, plan_id: planIdOf(plan) })
             });
             const selectedPlan = result.selectedPlan || plan;
-            const selectedName = getPlanName(selectedPlan);
-            const selectedPrice = getPlanPrice(selectedPlan);
-            const selectedDuration = getPlanDuration(selectedPlan);
-
+            const selectedName = planNameOf(selectedPlan);
+            const selectedPrice = planPriceOf(selectedPlan);
+            const selectedDuration = planDurationOf(selectedPlan);
             document.getElementById("confirmation-name").textContent = name;
             document.getElementById("confirmation-email").textContent = email;
             document.getElementById("confirmation-plan").textContent = selectedName;
             document.getElementById("confirmation-price").textContent = `₹${selectedPrice.toLocaleString("en-IN")}`;
-            document.getElementById("confirmation-duration").textContent = `${selectedDuration} ${selectedDuration === 1 ? "Month" : "Months"}`;
+            document.getElementById("confirmation-duration").textContent = durationLabel(selectedDuration);
             document.getElementById("continue-to-payment").href = `payment.html?member=${encodeURIComponent(result.memberId)}`;
-
-            const emailBody = [
-                "Welcome to Iron House Fitness Club!", "",
-                "Thank you for your registration as a member.", "",
-                "Your selected membership plan is:", selectedName, "",
-                "Plan Price:", `₹${selectedPrice.toLocaleString("en-IN")}`, "",
-                "Duration:", `${selectedDuration} ${selectedDuration === 1 ? "Month" : "Months"}`, "",
-                "Please complete your payment to activate your membership.", "",
-                "Thank you,", "Iron House Fitness Club"
+            const mailBody = [
+                "Welcome to Iron House Fitness Club!", "", "Thank you for your registration as a member.", "",
+                "Your selected membership plan is:", selectedName, "", "Plan Price:",
+                `₹${selectedPrice.toLocaleString("en-IN")}`, "", "Duration:", durationLabel(selectedDuration), "",
+                "Please complete your payment to activate your membership.", "", "Thank you,", "Iron House Fitness Club"
             ].join("\n");
-            document.getElementById("email-draft-link").href = `mailto:${email}?subject=${encodeURIComponent("Welcome to Iron House Fitness Club")}&body=${encodeURIComponent(emailBody)}`;
+            document.getElementById("email-draft-link").href = `mailto:${email}?subject=${encodeURIComponent("Welcome to Iron House Fitness Club")}&body=${encodeURIComponent(mailBody)}`;
             document.getElementById("registration-confirmation").hidden = false;
             memberForm.closest(".member-layout").hidden = true;
             document.getElementById("registration-confirmation").scrollIntoView({ behavior: "smooth", block: "start" });
         } catch (error) {
             memberError.textContent = error.status === 503 ? "Database connection failed." : "Unable to register member. Please try again.";
         } finally {
-            setBusy(submitButton, false);
+            setButtonBusy(submitButton, false);
         }
     });
 }
 
 const paymentForm = document.getElementById("paymentForm");
-
 if (paymentForm) {
     const memberSelect = document.getElementById("payment-member");
     const planSelect = document.getElementById("plan");
-    const paymentDate = document.getElementById("payment-date");
+    const dateInput = document.getElementById("payment-date");
     const amountInput = document.getElementById("amount");
     const feedback = document.getElementById("payment-feedback");
     const submitButton = paymentForm.querySelector('[type="submit"]');
     let members = [];
     let plans = [];
 
-    function updatePaymentAmount() {
-        const plan = plans.find(item => String(getPlanId(item)) === planSelect.value);
-        amountInput.value = plan ? getPlanPrice(plan) : "";
+    function refreshAmount() {
+        const plan = plans.find(item => String(planIdOf(item)) === planSelect.value);
+        amountInput.value = plan ? planPriceOf(plan) : "";
     }
 
     async function loadPaymentOptions() {
         try {
-            [members, plans] = await Promise.all([
-                apiRequest("/api/members"),
-                apiRequest("/api/plans")
-            ]);
-
+            [members, plans] = await Promise.all([apiRequest("/api/members"), apiRequest("/api/plans")]);
             memberSelect.replaceChildren(new Option("Select Member", ""));
-            members.forEach(function (member) {
-                memberSelect.appendChild(new Option(member.name, String(member.memberId)));
-            });
-
+            members.forEach(member => memberSelect.appendChild(new Option(member.name, String(member.memberId))));
             planSelect.replaceChildren(new Option("Select Plan", ""));
-            plans.forEach(function (plan) {
-                planSelect.appendChild(new Option(
-                    `${getPlanName(plan)} - ₹${getPlanPrice(plan).toLocaleString("en-IN")}`,
-                    String(getPlanId(plan))
-                ));
-            });
+            plans.forEach(plan => planSelect.appendChild(new Option(
+                `${planNameOf(plan)} - ₹${planPriceOf(plan).toLocaleString("en-IN")}`,
+                String(planIdOf(plan))
+            )));
 
-            const requestedMember = new URLSearchParams(window.location.search).get("member");
-            const selectedMember = members.find(member => String(member.memberId) === requestedMember);
-            if (selectedMember) {
-                memberSelect.value = String(selectedMember.memberId);
-                if (selectedMember.planId !== null && selectedMember.planId !== undefined) {
-                    planSelect.value = String(selectedMember.planId);
-                }
+            const requestedId = new URLSearchParams(window.location.search).get("member");
+            const selected = members.find(member => String(member.memberId) === requestedId);
+            if (selected) {
+                memberSelect.value = String(selected.memberId);
+                planSelect.value = String(selected.planId);
             }
-            updatePaymentAmount();
+            refreshAmount();
         } catch (error) {
             feedback.textContent = "Database connection failed.";
         }
     }
 
-    memberSelect.addEventListener("change", function () {
+    memberSelect.addEventListener("change", () => {
         const member = members.find(item => String(item.memberId) === memberSelect.value);
-        if (member && member.planId !== null && member.planId !== undefined) {
-            planSelect.value = String(member.planId);
-        }
-        updatePaymentAmount();
+        if (member) planSelect.value = String(member.planId);
+        refreshAmount();
     });
-    planSelect.addEventListener("change", updatePaymentAmount);
-
+    planSelect.addEventListener("change", refreshAmount);
     const today = new Date();
-    paymentDate.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    dateInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     loadPaymentOptions();
 
-    paymentForm.addEventListener("submit", async function (event) {
+    paymentForm.addEventListener("submit", async event => {
         event.preventDefault();
         feedback.textContent = "";
-        const plan = plans.find(item => String(getPlanId(item)) === planSelect.value);
-        const amount = Number(amountInput.value);
-
-        if (!memberSelect.value || !plan || !paymentDate.value || amount !== getPlanPrice(plan)) {
+        const plan = plans.find(item => String(planIdOf(item)) === planSelect.value);
+        if (!memberSelect.value || !plan || !dateInput.value || Number(amountInput.value) !== planPriceOf(plan)) {
             feedback.textContent = "Select a registered member, plan, and payment date.";
             return;
         }
-
-        setBusy(submitButton, true, "Recording...");
+        setButtonBusy(submitButton, true, "Recording...");
         try {
             const result = await apiRequest("/api/payments", {
                 method: "POST",
-                body: JSON.stringify({
-                    member_id: Number(memberSelect.value),
-                    plan_id: getPlanId(plan),
-                    payment_date: paymentDate.value,
-                    amount,
-                    payment_status: "PAID"
-                })
+                body: JSON.stringify({ member_id: Number(memberSelect.value), plan_id: planIdOf(plan), payment_date: dateInput.value, amount: Number(amountInput.value), payment_status: "PAID" })
             });
             feedback.textContent = result.message || "Payment recorded successfully!";
         } catch (error) {
             feedback.textContent = error.status === 503 ? "Database connection failed." : "Unable to record payment.";
         } finally {
-            setBusy(submitButton, false);
+            setButtonBusy(submitButton, false);
         }
     });
 }
 
 function searchPayment() {
-    const searchInput = document.getElementById("search");
+    const input = document.getElementById("search");
     const table = document.getElementById("paymentTable");
-    if (!searchInput || !table) return;
-
-    const searchValue = searchInput.value.trim().toLowerCase();
+    if (!input || !table) return;
+    const query = input.value.trim().toLowerCase();
     const rows = table.getElementsByTagName("tr");
     for (let index = 1; index < rows.length; index += 1) {
         const memberName = rows[index].getElementsByTagName("td")[1];
-        if (memberName) {
-            rows[index].style.display = memberName.textContent.toLowerCase().includes(searchValue) ? "" : "none";
-        }
+        if (memberName) rows[index].style.display = memberName.textContent.toLowerCase().includes(query) ? "" : "none";
     }
 }
 
 const revealItems = document.querySelectorAll(".home-page [data-reveal]");
 if (revealItems.length && "IntersectionObserver" in window) {
     document.body.classList.add("reveal-ready");
-    const revealObserver = new IntersectionObserver(function (entries, observer) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.12 });
-    revealItems.forEach(item => revealObserver.observe(item));
+    const observer = new IntersectionObserver((entries, currentObserver) => entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            currentObserver.unobserve(entry.target);
+        }
+    }), { threshold: 0.12 });
+    revealItems.forEach(item => observer.observe(item));
 }
 
 const equipmentDetails = {
@@ -380,19 +293,18 @@ const planDetailsByName = {
     yearly: { suitable: "Members committed to long-term fitness goals.", gymAccess: "Full gym access during the membership period.", equipmentAccess: "Premium equipment access.", trainerSupport: "Trainer guidance throughout your membership.", fitnessAssessment: "Regular fitness assessments.", lockerFacility: "Locker facility included.", otherBenefits: "Priority support." }
 };
 
-function appendDetailBlock(container, headingText, value) {
+function appendDetailBlock(container, title, value) {
     const block = document.createElement("section");
     block.className = "dialog-detail-block";
     const heading = document.createElement("h3");
-    heading.textContent = headingText;
+    heading.textContent = title;
     block.appendChild(heading);
-
     if (Array.isArray(value)) {
         const list = document.createElement("ul");
-        value.forEach(function (item) {
-            const listItem = document.createElement("li");
-            listItem.textContent = item;
-            list.appendChild(listItem);
+        value.forEach(text => {
+            const item = document.createElement("li");
+            item.textContent = text;
+            list.appendChild(item);
         });
         block.appendChild(list);
     } else {
@@ -403,16 +315,15 @@ function appendDetailBlock(container, headingText, value) {
     container.appendChild(block);
 }
 
-function makePlanDetails(plan) {
-    const key = getPlanName(plan).toLowerCase();
-    const defaults = planDetailsByName[key] || {};
-    const duration = getPlanDuration(plan);
+function planDetails(plan) {
+    const defaults = planDetailsByName[planNameOf(plan).toLowerCase()] || {};
+    const months = planDurationOf(plan);
     return {
-        title: getPlanName(plan),
-        price: `₹${getPlanPrice(plan).toLocaleString("en-IN")}`,
-        duration: `${duration} ${duration === 1 ? "Month" : "Months"}`,
+        title: planNameOf(plan),
+        duration: durationLabel(months),
+        price: `₹${planPriceOf(plan).toLocaleString("en-IN")}`,
         suitable: defaults.suitable || "Members whose goals match this plan.",
-        gymAccess: defaults.gymAccess || "As described for this membership.",
+        gymAccess: defaults.gymAccess || "Full gym access during the membership period.",
         equipmentAccess: defaults.equipmentAccess || plan.description || "Contact the gym for details.",
         trainerSupport: defaults.trainerSupport || "Contact the gym for details.",
         fitnessAssessment: defaults.fitnessAssessment || "Contact the gym for details.",
@@ -427,13 +338,7 @@ function showPlanDetails(details) {
     document.getElementById("plan-dialog-title").textContent = details.title;
     const content = document.getElementById("plan-dialog-content");
     content.replaceChildren();
-    [
-        ["Plan Name", details.title], ["Duration", details.duration], ["Price", details.price],
-        ["Suitable For", details.suitable], ["Gym Access", details.gymAccess],
-        ["Equipment Access", details.equipmentAccess], ["Trainer Support", details.trainerSupport],
-        ["Fitness Assessment", details.fitnessAssessment], ["Locker Facility", details.lockerFacility],
-        ["Other Benefits", details.otherBenefits]
-    ].forEach(detail => appendDetailBlock(content, detail[0], detail[1]));
+    [["Plan Name", details.title], ["Duration", details.duration], ["Price", details.price], ["Suitable For", details.suitable], ["Gym Access", details.gymAccess], ["Equipment Access", details.equipmentAccess], ["Trainer Support", details.trainerSupport], ["Fitness Assessment", details.fitnessAssessment], ["Locker Facility", details.lockerFacility], ["Other Benefits", details.otherBenefits]].forEach(detail => appendDetailBlock(content, detail[0], detail[1]));
     dialog.showModal();
 }
 
@@ -453,221 +358,170 @@ function showEquipmentDetails(equipment) {
     dialog.showModal();
 }
 
-function buildPlanCard(plan, detailKey) {
+function buildPlanCard(plan, key) {
     const card = document.createElement("article");
     card.className = "membership-card";
-
     const kicker = document.createElement("p");
     kicker.className = "plan-kicker";
     kicker.textContent = "MEMBERSHIP PLAN";
     const heading = document.createElement("h3");
-    heading.textContent = getPlanName(plan);
-    const durationText = document.createElement("p");
-    durationText.className = "plan-duration";
-    const months = getPlanDuration(plan);
-    durationText.textContent = `${months} ${months === 1 ? "Month" : "Months"}`;
+    heading.textContent = planNameOf(plan);
+    const duration = document.createElement("p");
+    duration.className = "plan-duration";
+    duration.textContent = durationLabel(planDurationOf(plan));
     const price = document.createElement("p");
     price.className = "plan-price";
     const currency = document.createElement("span");
     currency.textContent = "₹";
-    price.append(currency, document.createTextNode(getPlanPrice(plan).toLocaleString("en-IN")));
+    price.append(currency, document.createTextNode(planPriceOf(plan).toLocaleString("en-IN")));
     const benefits = document.createElement("ul");
     benefits.className = "plan-benefits";
-    getPlanBenefits(plan).forEach(function (benefit) {
+    benefitsForPlan(plan).forEach(text => {
         const item = document.createElement("li");
-        item.textContent = benefit;
+        item.textContent = text;
         benefits.appendChild(item);
     });
     const suitable = document.createElement("p");
     suitable.className = "plan-suitable";
-    const suitableLabel = document.createElement("span");
-    suitableLabel.textContent = "SUITABLE FOR";
-    suitable.append(suitableLabel, makePlanDetails(plan).suitable);
+    const label = document.createElement("span");
+    label.textContent = "SUITABLE FOR";
+    suitable.append(label, planDetails(plan).suitable);
     const button = document.createElement("button");
     button.className = "plans-button plans-button-outline";
     button.type = "button";
-    button.dataset.planDetails = detailKey;
+    button.dataset.planDetails = key;
     button.textContent = "View Plan Details";
-    card.append(kicker, heading, durationText, price, benefits, suitable, button);
+    card.append(kicker, heading, duration, price, benefits, suitable, button);
     return card;
 }
 
 const plansPage = document.querySelector(".plans-page");
-
 if (plansPage) {
-    const planDialog = document.getElementById("plan-details-dialog");
-    const equipmentDialog = document.getElementById("equipment-details-dialog");
+    const membershipGrid = document.getElementById("membership-grid");
+    const feedback = document.getElementById("plan-feedback");
     const addPlanDialog = document.getElementById("add-plan-dialog");
     const addPlanForm = document.getElementById("add-plan-form");
-    const membershipGrid = document.getElementById("membership-grid");
-    const planFeedback = document.getElementById("plan-feedback");
-    const detailsByKey = {};
+    const dialogs = [document.getElementById("plan-details-dialog"), document.getElementById("equipment-details-dialog"), addPlanDialog];
+    const detailsById = {};
     let plans = [];
 
     async function loadPlans() {
         try {
             plans = await apiRequest("/api/plans");
-            const cards = [...membershipGrid.querySelectorAll(".membership-card")];
-            const matched = new Set();
-
-            plans.forEach(function (plan) {
-                const key = String(getPlanId(plan));
-                detailsByKey[key] = makePlanDetails(plan);
-                const planName = getPlanName(plan).toLowerCase();
-                let card = cards.find(item => !matched.has(item) && item.querySelector("h3")?.textContent.toLowerCase().replace(/\s+plan$/, "") === planName);
-
-                if (card) {
-                    matched.add(card);
-                    card.dataset.planId = key;
-                    const detailButton = card.querySelector("[data-plan-details]");
-                    if (detailButton) detailButton.dataset.planDetails = key;
-                    const duration = card.querySelector(".plan-duration");
-                    if (duration) {
-                        const months = getPlanDuration(plan);
-                        duration.textContent = `${months} ${months === 1 ? "Month" : "Months"}`;
-                    }
-                    const price = card.querySelector(".plan-price");
+            const oldCards = [...membershipGrid.querySelectorAll(".membership-card")];
+            const used = new Set();
+            plans.forEach(plan => {
+                const id = String(planIdOf(plan));
+                detailsById[id] = planDetails(plan);
+                const normalizedName = planNameOf(plan).toLowerCase();
+                const existing = oldCards.find(card => !used.has(card) && card.querySelector("h3")?.textContent.toLowerCase().replace(/\s+plan$/, "") === normalizedName);
+                if (existing) {
+                    used.add(existing);
+                    const button = existing.querySelector("[data-plan-details]");
+                    if (button) button.dataset.planDetails = id;
+                    const duration = existing.querySelector(".plan-duration");
+                    if (duration) duration.textContent = durationLabel(planDurationOf(plan));
+                    const price = existing.querySelector(".plan-price");
                     if (price) {
-                        const currency = price.querySelector("span");
-                        price.replaceChildren(currency || document.createElement("span"), document.createTextNode(getPlanPrice(plan).toLocaleString("en-IN")));
-                        if (currency) currency.textContent = "₹";
+                        const currency = price.querySelector("span") || document.createElement("span");
+                        currency.textContent = "₹";
+                        price.replaceChildren(currency, document.createTextNode(planPriceOf(plan).toLocaleString("en-IN")));
                     }
                 } else {
-                    membershipGrid.appendChild(buildPlanCard(plan, key));
+                    membershipGrid.appendChild(buildPlanCard(plan, id));
                 }
             });
         } catch (error) {
-            planFeedback.textContent = "Database connection failed.";
+            feedback.textContent = "Database connection failed.";
         }
     }
-
     loadPlans();
 
-    plansPage.addEventListener("click", function (event) {
+    plansPage.addEventListener("click", event => {
         const planButton = event.target.closest("[data-plan-details]");
-        if (planButton) {
-            const details = detailsByKey[planButton.dataset.planDetails];
-            if (details) showPlanDetails(details);
-        }
-
+        if (planButton && detailsById[planButton.dataset.planDetails]) showPlanDetails(detailsById[planButton.dataset.planDetails]);
         const equipmentButton = event.target.closest("[data-equipment-details]");
-        if (equipmentButton && equipmentDetails[equipmentButton.dataset.equipmentDetails]) {
-            showEquipmentDetails(equipmentDetails[equipmentButton.dataset.equipmentDetails]);
-        }
-
+        if (equipmentButton && equipmentDetails[equipmentButton.dataset.equipmentDetails]) showEquipmentDetails(equipmentDetails[equipmentButton.dataset.equipmentDetails]);
         if (event.target.closest("[data-open-add-plan]")) {
-            planFeedback.textContent = "";
+            feedback.textContent = "";
             addPlanForm.reset();
             addPlanDialog.showModal();
         }
-
         const closeButton = event.target.closest("[data-dialog-close]");
-        if (closeButton) {
-            const dialog = closeButton.closest("dialog");
-            if (dialog && dialog.open) dialog.close();
-        }
+        if (closeButton) closeButton.closest("dialog")?.close();
     });
 
-    addPlanForm.addEventListener("submit", async function (event) {
+    addPlanForm.addEventListener("submit", async event => {
         event.preventDefault();
         if (!addPlanForm.reportValidity()) return;
-
-        const formData = new FormData(addPlanForm);
-        const description = [
-            String(formData.get("description")).trim(),
-            `Equipment access: ${String(formData.get("equipment")).trim()}`,
-            `Trainer support: ${String(formData.get("trainerSupport")).trim()}`,
-            `Fitness assessment: ${String(formData.get("assessment"))}`,
-            `Other benefits: ${String(formData.get("benefits")).trim()}`
-        ].join("\n");
-        const submitButton = addPlanForm.querySelector('[type="submit"]');
-        setBusy(submitButton, true, "Adding...");
-
+        const form = new FormData(addPlanForm);
+        const description = [String(form.get("description")).trim(), `Equipment access: ${String(form.get("equipment")).trim()}`, `Trainer support: ${String(form.get("trainerSupport")).trim()}`, `Fitness assessment: ${form.get("assessment")}`, `Other benefits: ${String(form.get("benefits")).trim()}`].join("\n");
+        const button = addPlanForm.querySelector('[type="submit"]');
+        setButtonBusy(button, true, "Adding...");
         try {
             const response = await apiRequest("/api/plans", {
                 method: "POST",
-                body: JSON.stringify({
-                    plan_name: String(formData.get("planName")).trim(),
-                    duration_months: Number(formData.get("duration")),
-                    price: Number(formData.get("price")),
-                    description
-                })
+                body: JSON.stringify({ plan_name: String(form.get("planName")).trim(), duration_months: Number(form.get("duration")), price: Number(form.get("price")), description })
             });
-            const createdPlan = response.plan;
-            const detailKey = String(createdPlan.planId);
-            detailsByKey[detailKey] = makePlanDetails(createdPlan);
-            plans.push(createdPlan);
-            membershipGrid.appendChild(buildPlanCard(createdPlan, detailKey));
+            const plan = response.plan;
+            detailsById[String(plan.planId)] = planDetails(plan);
+            plans.push(plan);
+            membershipGrid.appendChild(buildPlanCard(plan, String(plan.planId)));
             addPlanForm.reset();
             addPlanDialog.close();
-            planFeedback.textContent = response.message || "New membership plan added successfully!";
+            feedback.textContent = response.message || "New membership plan added successfully!";
         } catch (error) {
-            planFeedback.textContent = error.status === 503 ? "Database connection failed." : "Unable to add plan. Please try again.";
+            feedback.textContent = error.status === 503 ? "Database connection failed." : "Unable to add plan. Please try again.";
         } finally {
-            setBusy(submitButton, false);
+            setButtonBusy(button, false);
         }
     });
 
-    [planDialog, equipmentDialog, addPlanDialog].forEach(function (dialog) {
-        dialog.addEventListener("click", function (event) {
-            if (event.target === dialog) dialog.close();
-        });
-        dialog.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                dialog.close();
-            }
+    dialogs.forEach(dialog => {
+        dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+        dialog.addEventListener("keydown", event => {
+            if (event.key === "Escape") { event.preventDefault(); dialog.close(); }
         });
     });
     addPlanDialog.addEventListener("close", () => addPlanForm.reset());
 }
 
 const historyPage = document.querySelector(".history-page");
-
 if (historyPage) {
-    const metrics = {
+    const metricIds = {
         totalMembers: ["total-members", "overview-total"],
         paidMembers: ["paid-members", "overview-paid"],
         pendingPayments: ["pending-members", "overview-pending"],
         totalPaidAmount: ["total-revenue", "overview-revenue"]
     };
-    Object.values(metrics).flat().forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = "—";
-    });
     document.getElementById("overview-date").textContent = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
     async function loadDashboard() {
         try {
-            const [summary, payments] = await Promise.all([
-                apiRequest("/api/dashboard"),
-                apiRequest("/api/payment-details")
-            ]);
+            const [dashboard, payments] = await Promise.all([apiRequest("/api/dashboard"), apiRequest("/api/payment-details")]);
             const values = {
-                totalMembers: summary.totalMembers,
-                paidMembers: summary.paidMembers,
-                pendingPayments: summary.pendingPayments,
-                totalPaidAmount: `₹${Number(summary.totalPaidAmount).toLocaleString("en-IN")}`
+                totalMembers: dashboard.totalMembers,
+                paidMembers: dashboard.paidMembers,
+                pendingPayments: dashboard.pendingPayments,
+                totalPaidAmount: `₹${Number(dashboard.totalPaidAmount).toLocaleString("en-IN")}`
             };
-            Object.entries(metrics).forEach(([key, ids]) => ids.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.textContent = values[key];
+            Object.entries(metricIds).forEach(([key, ids]) => ids.forEach(id => {
+                document.getElementById(id).textContent = values[key];
             }));
-
-            const rows = document.getElementById("dashboard-payment-rows");
-            rows.replaceChildren();
+            const tbody = document.getElementById("dashboard-payment-rows");
+            tbody.replaceChildren();
             if (!payments.length) {
                 const row = document.createElement("tr");
-                row.className = "empty-row";
                 const cell = document.createElement("td");
+                row.className = "empty-row";
                 cell.colSpan = 5;
                 cell.textContent = "No payment records found.";
                 row.appendChild(cell);
-                rows.appendChild(row);
+                tbody.appendChild(row);
             } else {
-                payments.forEach(function (payment) {
+                payments.forEach(payment => {
                     const row = document.createElement("tr");
-                    [payment.memberName, payment.planName, payment.paymentStatus, payment.paymentDate, `₹${Number(payment.amount).toLocaleString("en-IN")}`].forEach(function (value, index) {
+                    [payment.memberName, payment.planName, payment.paymentStatus, payment.paymentDate, `₹${Number(payment.amount).toLocaleString("en-IN")}`].forEach((value, index) => {
                         const cell = document.createElement("td");
                         cell.textContent = value ?? "—";
                         if (index === 2) {
@@ -679,13 +533,12 @@ if (historyPage) {
                         }
                         row.appendChild(cell);
                     });
-                    rows.appendChild(row);
+                    tbody.appendChild(row);
                 });
             }
         } catch (error) {
             document.getElementById("dashboard-data-note").textContent = "Database connection failed.";
         }
     }
-
     loadDashboard();
 }
