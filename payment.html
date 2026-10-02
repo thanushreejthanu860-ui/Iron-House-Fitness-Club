@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Payment | Iron House Fitness Club</title>
+</head>
+
+<body class="payment-page">
+
+    <header>
+        <h1>Gym Membership Management System</h1>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="primary-navigation" aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="plans.html">Plans</a>
+            <a href="payment.html" aria-current="page">Payment</a>
+            <a href="history.html">History</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Make Payment</h2>
+        <p class="payment-intro">Select a registered member and membership plan to record a payment in Oracle.</p>
+
+        <form id="paymentForm">
+
+            <label>Select Member:</label>
+
+            <select id="payment-member" required>
+                <option value="">Select Member</option>
+            </select>
+
+            <label>Select Plan:</label>
+
+            <select id="plan" required>
+                <option value="">Select Plan</option>
+                <option value="monthly">Monthly - ₹1000</option>
+                <option value="quarterly">Quarterly - ₹2500</option>
+                <option value="yearly">Yearly - ₹8000</option>
+            </select>
+
+            <label>Payment Date:</label>
+            <input type="date" id="payment-date" required>
+
+            <label>Amount:</label>
+            <input type="number" id="amount" readonly>
+
+            <button type="submit">Make Payment</button>
+            <p id="payment-feedback" class="payment-feedback" role="status" aria-live="polite"></p>
+            <p class="local-storage-note">Payment records are submitted to Oracle through the application server.</p>
+
+        </form>
+
+    </main>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>

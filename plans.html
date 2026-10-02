@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Membership Plans</title>
+</head>
+
+<body class="plans-page">
+    <header>
+        <h1>Gym Membership Management System</h1>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="primary-navigation" aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="plans.html" aria-current="page">Plans</a>
+            <a href="payment.html">Payment</a>
+            <a href="history.html">History</a>
+        </nav>
+    </header>
+
+    <main class="plans-main">
+        <section class="plans-intro" aria-labelledby="plans-heading">
+            <p class="plans-eyebrow">MEMBERSHIP AT IRON HOUSE</p>
+            <h2 id="plans-heading">Choose Your<br><em>Membership Plan</em></h2>
+            <p>Find a membership that fits your fitness goals and the time you want to invest. Every plan gives you a place to build a stronger routine.</p>
+        </section>
+
+        <section class="plans-section" aria-labelledby="membership-options-heading">
+            <div class="plans-section-heading">
+                <div><p class="plans-eyebrow">FIND YOUR FIT</p><h2 id="membership-options-heading">Membership options</h2></div>
+                <span class="section-count">01 / 03</span>
+            </div>
+            <div class="membership-grid" id="membership-grid">
+                <article class="membership-card">
+                    <p class="plan-kicker">FLEXIBLE START</p>
+                    <h3>Monthly Plan</h3>
+                    <p class="plan-duration">1 Month</p>
+                    <p class="plan-price"><span>&#8377;</span>1,000</p>
+                    <ul class="plan-benefits">
+                        <li>Full gym access</li><li>Standard equipment access</li><li>Basic fitness assessment</li><li>Locker facility</li>
+                    </ul>
+                    <p class="plan-suitable"><span>SUITABLE FOR</span>Beginners and short-term users</p>
+                    <button class="plans-button plans-button-outline" type="button" data-plan-details="monthly">View Plan Details <span aria-hidden="true">&#8599;</span></button>
+                </article>
+                <article class="membership-card membership-card-featured">
+                    <span class="plan-ribbon">MEMBER FAVORITE</span>
+                    <p class="plan-kicker">CONSISTENT PROGRESS</p>
+                    <h3>Quarterly Plan</h3>
+                    <p class="plan-duration">3 Months</p>
+                    <p class="plan-price"><span>&#8377;</span>2,500</p>
+                    <ul class="plan-benefits">
+                        <li>Full gym access</li><li>All equipment access</li><li>Fitness assessment</li><li>Basic trainer guidance</li><li>Locker facility</li>
+                    </ul>
+                    <p class="plan-suitable"><span>SUITABLE FOR</span>Regular gym members</p>
+                    <button class="plans-button plans-button-outline" type="button" data-plan-details="quarterly">View Plan Details <span aria-hidden="true">&#8599;</span></button>
+                </article>
+                <article class="membership-card">
+                    <p class="plan-kicker">LONG-TERM COMMITMENT</p>
+                    <h3>Yearly Plan</h3>
+                    <p class="plan-duration">12 Months</p>
+                    <p class="plan-price"><span>&#8377;</span>8,000</p>
+                    <ul class="plan-benefits">
+                        <li>Full gym access</li><li>Premium equipment access</li><li>Regular fitness assessment</li><li>Trainer guidance</li><li>Locker facility</li><li>Priority support</li>
+                    </ul>
+                    <p class="plan-suitable"><span>SUITABLE FOR</span>Long-term fitness goals</p>
+                    <button class="plans-button plans-button-outline" type="button" data-plan-details="yearly">View Plan Details <span aria-hidden="true">&#8599;</span></button>
+                </article>
+            </div>
+            <div class="add-plan-row">
+                <p id="plan-feedback" role="status" aria-live="polite"></p>
+                <button type="button" class="plans-button plans-button-add" data-open-add-plan><span aria-hidden="true">+</span> Add New Plan</button>
+            </div>
+        </section>
+
+        <section class="equipment-section" aria-labelledby="equipment-heading">
+            <div class="plans-section-heading">
+                <div><p class="plans-eyebrow">TOOLS FOR EVERY REP</p><h2 id="equipment-heading">Explore Our Gym Equipment</h2><p class="section-description">Purpose-built equipment for cardio, strength, and controlled progression.</p></div>
+                <span class="section-count">02 / 03</span>
+            </div>
+            <div class="equipment-grid">
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Empty gym cardio and treadmill equipment" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">CARDIO</p><h3>Treadmill</h3><p>Cardio equipment used for walking, jogging and running.</p><ul><li>Speed adjustment</li><li>Incline options</li><li>Cardio workout</li><li>Calorie tracking</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="treadmill">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Unoccupied indoor gym equipment including stationary bikes" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">LOW-IMPACT CARDIO</p><h3>Exercise Bike</h3><p>Useful for cardiovascular workouts and lower-body training.</p><ul><li>Adjustable resistance</li><li>Comfortable seating</li><li>Cardio training</li><li>Low-impact exercise</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="exercise-bike">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Close view of dumbbells arranged on a rack" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">FREE WEIGHTS</p><h3>Dumbbells</h3><p>Free weights used for strength training and muscle development.</p><ul><li>Different weight options</li><li>Arm training</li><li>Shoulder training</li><li>Full-body exercises</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="dumbbells">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1590487988256-9ed24133863e?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Unoccupied weight bench and strength equipment" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">STRENGTH</p><h3>Bench Press</h3><p>Equipment designed for chest, shoulder and upper-body strength training.</p><ul><li>Chest workouts</li><li>Upper-body training</li><li>Adjustable support</li><li>Strength development</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="bench-press">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Empty gym floor with strength and cable equipment" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">CONTROLLED RESISTANCE</p><h3>Cable Machine</h3><p>Versatile equipment for controlled resistance exercises.</p><ul><li>Adjustable resistance</li><li>Multiple exercise options</li><li>Upper-body training</li><li>Full-body workouts</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="cable-machine">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+                <article class="equipment-card">
+                    <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&amp;fit=crop&amp;w=800&amp;q=85" alt="Unoccupied strength machines in a gym" loading="lazy">
+                    <div class="equipment-card-body"><p class="equipment-type">LOWER BODY</p><h3>Leg Press</h3><p>Equipment focused on strengthening the lower body.</p><ul><li>Leg training</li><li>Quadriceps workout</li><li>Hamstring workout</li><li>Controlled resistance</li></ul><button type="button" class="plans-button plans-button-text" data-equipment-details="leg-press">View Details <span aria-hidden="true">&#8599;</span></button></div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="plans-footer"><span>IRON HOUSE FITNESS CLUB</span><span>Memberships designed around your goals.</span><span>&copy; 2026</span></footer>
+
+    <dialog class="plans-dialog" id="plan-details-dialog" aria-labelledby="plan-dialog-title">
+        <div class="plans-dialog-panel">
+            <button type="button" class="plans-dialog-x" data-dialog-close aria-label="Close plan details">&times;</button>
+            <p class="plans-eyebrow" id="plan-dialog-kicker">MEMBERSHIP DETAILS</p>
+            <h2 id="plan-dialog-title"></h2>
+            <div class="dialog-detail-grid" id="plan-dialog-content"></div>
+            <button type="button" class="plans-button plans-button-primary" data-dialog-close>Close</button>
+        </div>
+    </dialog>
+
+    <dialog class="plans-dialog" id="equipment-details-dialog" aria-labelledby="equipment-dialog-title">
+        <div class="plans-dialog-panel equipment-dialog-panel">
+            <button type="button" class="plans-dialog-x" data-dialog-close aria-label="Close equipment details">&times;</button>
+            <p class="plans-eyebrow">EQUIPMENT DETAILS</p>
+            <h2 id="equipment-dialog-title"></h2>
+            <img class="equipment-dialog-image" id="equipment-dialog-image" alt="">
+            <div class="dialog-detail-grid" id="equipment-dialog-content"></div>
+            <button type="button" class="plans-button plans-button-primary" data-dialog-close>Close</button>
+        </div>
+    </dialog>
+
+    <dialog class="plans-dialog add-plan-dialog" id="add-plan-dialog" aria-labelledby="add-plan-title">
+        <div class="plans-dialog-panel">
+            <button type="button" class="plans-dialog-x" data-dialog-close aria-label="Close add plan form">&times;</button>
+            <p class="plans-eyebrow">MEMBERSHIP MANAGEMENT</p>
+            <h2 id="add-plan-title">Add New Plan</h2>
+            <form class="add-plan-form" id="add-plan-form">
+                <div class="add-plan-fields">
+                    <div class="add-plan-field"><label for="new-plan-name">Plan Name</label><input id="new-plan-name" name="planName" type="text" required></div>
+                    <div class="add-plan-field"><label for="new-plan-duration">Duration (Months)</label><input id="new-plan-duration" name="duration" type="number" min="1" step="1" required></div>
+                    <div class="add-plan-field"><label for="new-plan-price">Price (&#8377;)</label><input id="new-plan-price" name="price" type="number" min="0.01" step="0.01" required></div>
+                    <div class="add-plan-field"><label for="new-plan-assessment">Fitness Assessment</label><select id="new-plan-assessment" name="assessment" required><option value="">Choose availability</option><option value="Included">Included</option><option value="Not included">Not included</option></select></div>
+                    <div class="add-plan-field add-plan-field-wide"><label for="new-plan-description">Description</label><textarea id="new-plan-description" name="description" rows="2" required></textarea></div>
+                    <div class="add-plan-field"><label for="new-plan-equipment">Equipment Access</label><input id="new-plan-equipment" name="equipment" type="text" required></div>
+                    <div class="add-plan-field"><label for="new-plan-trainer">Trainer Support</label><input id="new-plan-trainer" name="trainerSupport" type="text" required></div>
+                    <div class="add-plan-field add-plan-field-wide"><label for="new-plan-benefits">Other Benefits</label><textarea id="new-plan-benefits" name="benefits" rows="2" required></textarea></div>
+                </div>
+                <div class="add-plan-actions"><button type="button" class="plans-button plans-button-outline" data-dialog-close>Cancel</button><button type="submit" class="plans-button plans-button-primary">Add Plan</button></div>
+            </form>
+        </div>
+    </dialog>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

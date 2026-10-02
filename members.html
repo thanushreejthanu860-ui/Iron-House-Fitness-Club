@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Become a Member | Iron House Fitness Club</title>
+</head>
+<body class="members-page">
+
+    <header>
+        <h1>Gym Membership Management System</h1>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="primary-navigation" aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="members.html" aria-current="page">Members</a>
+            <a href="plans.html">Plans</a>
+            <a href="payment.html">Payment</a>
+            <a href="history.html">History</a>
+        </nav>
+    </header>
+
+    <main class="member-main">
+        <section class="member-intro">
+            <p class="eyebrow">START YOUR MEMBERSHIP</p>
+            <h2>Become a <em>Member</em></h2>
+            <p>Register with Iron House Fitness Club and choose the membership plan that suits your fitness goals.</p>
+        </section>
+
+        <section class="member-layout" aria-label="Member registration">
+            <form id="memberForm" class="member-form" novalidate>
+                <div class="member-form-heading"><h3>Your details</h3><span>All fields required unless marked optional</span></div>
+                <div class="member-fields">
+                    <div class="member-field member-field-wide"><label for="name">Full Name</label><input type="text" id="name" name="name" autocomplete="name" required></div>
+                    <div class="member-field"><label for="phone">Phone Number</label><input type="tel" id="phone" name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9+() -]{10,16}" required></div>
+                    <div class="member-field"><label for="email">Email Address</label><input type="email" id="email" name="email" autocomplete="email" required></div>
+                    <div class="member-field"><label for="age">Age</label><input type="number" id="age" name="age" min="15" max="80" required></div>
+                    <div class="member-field"><label for="gender">Gender</label><select id="gender" name="gender" required><option value="">Select gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option><option value="Prefer not to say">Prefer not to say</option></select></div>
+                    <div class="member-field member-field-wide"><label for="member-plan">Membership Plan</label><select id="member-plan" name="planId" required><option value="">Choose your plan</option><option value="monthly">Monthly - ₹1,000 - 1 Month</option><option value="quarterly">Quarterly - ₹2,500 - 3 Months</option><option value="yearly">Yearly - ₹8,000 - 12 Months</option></select></div>
+                </div>
+                <p class="member-error" id="member-error" role="alert"></p>
+                <button type="submit" class="member-submit">Register Member <span aria-hidden="true">&#8599;</span></button>
+                <p class="local-storage-note">Member registrations are submitted to Oracle through the application server.</p>
+            </form>
+
+            <aside class="member-plan-preview" aria-live="polite">
+                <p class="eyebrow">YOUR MEMBERSHIP</p>
+                <h3 id="selected-plan-name">Choose a plan</h3>
+                <p class="selected-plan-price" id="selected-plan-price">&#8377; --</p>
+                <p class="selected-plan-duration" id="selected-plan-duration">Select a plan to see its duration.</p>
+                <div class="selected-plan-divider"></div>
+                <h4>Plan benefits</h4>
+                <ul id="selected-plan-benefits"><li>Full gym access</li><li>Quality equipment</li><li>Support for your routine</li></ul>
+                <a href="plans.html">Compare all plans <span aria-hidden="true">&#8594;</span></a>
+            </aside>
+        </section>
+
+        <section class="registration-confirmation" id="registration-confirmation" hidden aria-live="polite">
+            <p class="eyebrow">REGISTRATION COMPLETE</p>
+            <h2>Welcome to Iron House Fitness Club!</h2>
+            <p>Thank you for your registration as a member. Please complete your payment to activate your membership.</p>
+            <dl class="confirmation-details">
+                <div><dt>Member</dt><dd id="confirmation-name"></dd></div>
+                <div><dt>Email</dt><dd id="confirmation-email"></dd></div>
+                <div><dt>Plan</dt><dd id="confirmation-plan"></dd></div>
+                <div><dt>Price</dt><dd id="confirmation-price"></dd></div>
+                <div><dt>Duration</dt><dd id="confirmation-duration"></dd></div>
+            </dl>
+            <div class="confirmation-actions">
+                <a class="member-submit" id="continue-to-payment" href="payment.html">Continue to Payment <span aria-hidden="true">&#8594;</span></a>
+                <a class="email-draft-link" id="email-draft-link" href="#">Open email draft</a>
+            </div>
+            <p class="email-note">No email is sent automatically. “Open email draft” opens your email application with a prepared message; sending it is up to you.</p>
+        </section>
+    </main>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>

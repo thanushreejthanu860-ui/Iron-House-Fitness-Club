@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Gym Membership Dashboard | Iron House Fitness Club</title>
+</head>
+
+<body class="history-page">
+
+    <header>
+        <h1>Gym Membership Management System</h1>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open navigation menu">
+            <span></span><span></span><span></span>
+        </button>
+        <nav id="primary-navigation" aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="members.html">Members</a>
+            <a href="plans.html">Plans</a>
+            <a href="payment.html">Payment</a>
+            <a href="history.html" aria-current="page">History</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="dashboard-heading"><div><p class="eyebrow">IRON HOUSE / OVERVIEW</p><h2>Gym Membership Dashboard</h2><p>Registration and payment summary for Iron House Fitness Club.</p></div><a class="dashboard-action" href="members.html">Register Member <span aria-hidden="true">&#8599;</span></a></div>
+
+        <section class="dashboard-stats" aria-label="Gym membership summary">
+            <article class="dashboard-stat"><span>TOTAL REGISTERED MEMBERS</span><strong id="total-members">—</strong><small>Registered in Oracle</small></article>
+            <article class="dashboard-stat"><span>TOTAL PAID MEMBERS</span><strong id="paid-members">—</strong><small>Members with a paid record</small></article>
+            <article class="dashboard-stat"><span>PENDING PAYMENTS</span><strong id="pending-members">—</strong><small>Registered members without payment</small></article>
+            <article class="dashboard-stat"><span>TOTAL PAYMENT AMOUNT</span><strong id="total-revenue">&#8377;—</strong><small>Paid amount recorded in Oracle</small></article>
+        </section>
+
+        <section class="overview-section" aria-labelledby="overview-title">
+            <div class="dashboard-section-heading"><div><p class="eyebrow">MEMBERSHIP OVERVIEW</p><h3 id="overview-title">At a glance</h3></div><span id="overview-date"></span></div>
+            <div class="overview-grid">
+                <div><span>Total Registered Members</span><strong id="overview-total">—</strong></div>
+                <div><span>Members Who Completed Payment</span><strong id="overview-paid">—</strong></div>
+                <div><span>Members With Pending Payment</span><strong id="overview-pending">—</strong></div>
+                <div><span>Total Revenue</span><strong id="overview-revenue">&#8377;—</strong></div>
+            </div>
+        </section>
+
+        <section class="payment-details-section" aria-labelledby="payment-details-title">
+            <div class="dashboard-section-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h3 id="payment-details-title">Payment details</h3></div><a href="payment.html">Open payment page <span aria-hidden="true">&#8594;</span></a></div>
+            <div class="dashboard-table-wrap">
+                <table class="dashboard-table">
+                    <thead><tr><th>Member Name</th><th>Membership Plan</th><th>Payment Status</th><th>Payment Date</th><th>Amount</th></tr></thead>
+                    <tbody id="dashboard-payment-rows"><tr class="empty-row"><td colspan="5">Loading payment details from Oracle...</td></tr></tbody>
+                </table>
+            </div>
+            <p class="dashboard-data-note" id="dashboard-data-note">Dashboard figures are retrieved from Oracle through the application server.</p>
+        </section>
+
+    </main>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>
