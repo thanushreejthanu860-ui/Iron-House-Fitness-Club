@@ -196,9 +196,17 @@ app.post("/api/members", async (req, res) => {
                     name, phone, email, age, gender, planId,
                     memberId: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
                 },
+                { autoCommit: false }
+            );
+            const newMemberId = insertResult.outBinds.memberId[0];
+            const selectedPlan = formatPlan(planResult.rows[0]);
+            await connection.execute(
+                `INSERT INTO payments (member_id, plan_id, payment_date, amount, payment_status)
+                 VALUES (:memberId, :planId, NULL, :amount, 'PENDING')`,
+                { memberId: newMemberId, planId, amount: selectedPlan.price },
                 { autoCommit: true }
             );
-            return { memberId: insertResult.outBinds.memberId[0], selectedPlan: formatPlan(planResult.rows[0]) };
+            return { memberId: newMemberId, selectedPlan };
         });
         res.status(201).json({ success: true, message: "Member registered successfully.", ...inserted });
     } catch (error) {
@@ -211,18 +219,17 @@ app.post("/api/payments", async (req, res) => {
     const memberId = positiveInteger(req.body.member_id);
     const planId = positiveInteger(req.body.plan_id);
     const amount = positiveAmount(req.body.amount);
-    const status = typeof req.body.payment_status === "string" ? req.body.payment_status.trim().toUpperCase() : "";
     const paymentDate = req.body.payment_date;
 
-    if (!memberId || !planId || !amount || !["PAID", "PENDING"].includes(status)) {
-        return res.status(400).json({ success: false, message: "Provide valid member, plan, amount, and PAID or PENDING status." });
+    if (!memberId || !planId || !amount) {
+        return res.status(400).json({ success: false, message: "Provide valid member, plan, and amount." });
     }
     if (paymentDate !== undefined && !validDate(paymentDate)) {
         return res.status(400).json({ success: false, message: "Payment date must be a valid YYYY-MM-DD date." });
     }
 
     try {
-        const paymentId = await withConnection(async connection => {
+        const result = await withConnection(async connection => {
             const reference = await connection.execute(
                 `SELECT p.price AS "price"
                  FROM plans p
@@ -240,19 +247,35 @@ app.post("/api/payments", async (req, res) => {
                 error.statusCode = 400;
                 throw error;
             }
-            const result = await connection.execute(
+            // Update existing PENDING record if one exists
+            const updateResult = await connection.execute(
+                `UPDATE payments
+                 SET payment_status = 'PAID',
+                     payment_date = ${paymentDate ? "TO_DATE(:paymentDate, 'YYYY-MM-DD')" : "SYSDATE"}
+                 WHERE member_id = :memberId
+                   AND plan_id = :planId
+                   AND payment_status = 'PENDING'`,
+                { memberId, planId, ...(paymentDate ? { paymentDate } : {}) },
+                { autoCommit: false }
+            );
+            if (updateResult.rowsAffected > 0) {
+                await connection.commit();
+                return { updated: true };
+            }
+            // No PENDING record — insert a new PAID record
+            const insertResult = await connection.execute(
                 `INSERT INTO payments (member_id, plan_id, payment_date, amount, payment_status)
-                 VALUES (:memberId, :planId, ${paymentDate ? "TO_DATE(:paymentDate, 'YYYY-MM-DD')" : "SYSDATE"}, :amount, :status)
+                 VALUES (:memberId, :planId, ${paymentDate ? "TO_DATE(:paymentDate, 'YYYY-MM-DD')" : "SYSDATE"}, :amount, 'PAID')
                  RETURNING payment_id INTO :paymentId`,
                 {
-                    memberId, planId, ...(paymentDate ? { paymentDate } : {}), amount, status,
+                    memberId, planId, ...(paymentDate ? { paymentDate } : {}), amount,
                     paymentId: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
                 },
                 { autoCommit: true }
             );
-            return result.outBinds.paymentId[0];
+            return { updated: false, paymentId: insertResult.outBinds.paymentId[0] };
         });
-        res.status(201).json({ success: true, message: "Payment recorded successfully!", paymentId });
+        res.status(201).json({ success: true, message: "Payment recorded successfully!", ...result });
     } catch (error) {
         if (error.statusCode) return res.status(error.statusCode).json({ success: false, message: error.message });
         sendDatabaseError(res, error, "Unable to record payment.");
@@ -264,8 +287,7 @@ app.get("/api/dashboard", async (req, res) => {
         const result = await withConnection(connection => connection.execute(
             `SELECT (SELECT COUNT(*) FROM members) AS "totalMembers",
                     (SELECT COUNT(DISTINCT member_id) FROM payments WHERE UPPER(payment_status) = 'PAID') AS "paidMembers",
-                    (SELECT COUNT(*) FROM members) -
-                    (SELECT COUNT(DISTINCT member_id) FROM payments WHERE UPPER(payment_status) = 'PAID') AS "pendingPayments",
+                    (SELECT COUNT(*) FROM payments WHERE UPPER(payment_status) = 'PENDING') AS "pendingPayments",
                     (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE UPPER(payment_status) = 'PAID') AS "totalPaidAmount"
              FROM DUAL`
         ));
@@ -287,7 +309,8 @@ app.get("/api/payment-details", async (req, res) => {
              FROM payments pay
              JOIN members m ON m.member_id = pay.member_id
              JOIN plans p ON p.plan_id = pay.plan_id
-             ORDER BY pay.payment_date DESC, pay.payment_id DESC`
+             ORDER BY CASE WHEN pay.payment_date IS NULL THEN 1 ELSE 0 END,
+                      pay.payment_date DESC, pay.payment_id DESC`
         ));
         res.json(result.rows.map(row => ({ ...row, amount: Number(row.amount) })));
     } catch (error) {

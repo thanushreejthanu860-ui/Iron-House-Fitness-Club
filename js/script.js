@@ -243,7 +243,7 @@ if (paymentForm) {
         try {
             const result = await apiRequest("/api/payments", {
                 method: "POST",
-                body: JSON.stringify({ member_id: Number(memberSelect.value), plan_id: planIdOf(plan), payment_date: dateInput.value, amount: Number(amountInput.value), payment_status: "PAID" })
+                body: JSON.stringify({ member_id: Number(memberSelect.value), plan_id: planIdOf(plan), payment_date: dateInput.value, amount: Number(amountInput.value) })
             });
             feedback.textContent = result.message || "Payment recorded successfully!";
         } catch (error) {
