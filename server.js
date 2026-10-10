@@ -175,7 +175,7 @@ app.post("/api/members", async (req, res) => {
     const planId = positiveInteger(req.body.plan_id);
 
     if (!name || name.length > 100) return res.status(400).json({ success: false, message: "Enter a name up to 100 characters." });
-    if (!/^[0-9+() -]{10,15}$/.test(phone) || phone.replace(/\D/g, "").length < 10) return res.status(400).json({ success: false, message: "Enter a valid phone number." });
+    if (!/^\d{10}$/.test(phone)) return res.status(400).json({ success: false, message: "Enter a valid 10-digit phone number." });
     if (!email || email.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ success: false, message: "Enter a valid email address." });
     if (!Number.isInteger(age) || age < 15 || age > 80) return res.status(400).json({ success: false, message: "Age must be between 15 and 80." });
     if (!gender || gender.length > 20 || !planId) return res.status(400).json({ success: false, message: "Select a valid gender and membership plan." });

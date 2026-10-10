@@ -70,6 +70,12 @@ function setButtonBusy(button, busy, label) {
 }
 
 const memberForm = document.getElementById("memberForm");
+const phoneInput = document.getElementById("phone");
+if (phoneInput) {
+    phoneInput.addEventListener("input", () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+    });
+}
 if (memberForm) {
     const planSelect = document.getElementById("member-plan");
     const memberError = document.getElementById("member-error");
@@ -135,8 +141,8 @@ if (memberForm) {
             memberError.textContent = "Please complete all fields and select a membership plan.";
             return;
         }
-        if (!/^[0-9+() -]{10,16}$/.test(phone) || phone.replace(/\D/g, "").length < 10 || phone.replace(/\D/g, "").length > 15) {
-            memberError.textContent = "Enter a valid phone number with 10 to 15 digits.";
+        if (!/^\d{10}$/.test(phone)) {
+            memberError.textContent = "Enter a valid 10-digit phone number.";
             return;
         }
         if (!emailInput.checkValidity()) {
